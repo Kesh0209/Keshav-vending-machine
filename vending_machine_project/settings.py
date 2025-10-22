@@ -1,5 +1,5 @@
 from pathlib import Path
-import os  # Keep this one at the top
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -70,9 +70,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Deployment settings - will only activate on Render
-# REMOVE the duplicate: import os  (already imported above)
-
+# Deployment settings
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
@@ -81,8 +79,8 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-# Only use production settings on Render
-if not DEBUG:
+# Only use production settings on Render when DATABASE_URL is available
+if not DEBUG and os.environ.get('DATABASE_URL'):
     # Import here to avoid local issues
     import dj_database_url
     
@@ -101,4 +99,4 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True  
+    SECURE_BROWSER_XSS_FILTER = True
