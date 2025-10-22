@@ -100,3 +100,15 @@ if not DEBUG and os.environ.get('DATABASE_URL'):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
+
+# Media files configuration - FIXED VERSION
+# Make sure media directory exists
+if not os.path.exists(MEDIA_ROOT):
+    os.makedirs(MEDIA_ROOT)
+
+# Serve media files in production using Whitenoise
+if not DEBUG:
+    # Enable Whitenoise for media files
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_MANIFEST_STRICT = False
+    WHITENOISE_ALLOW_ALL_ORIGINS = True
