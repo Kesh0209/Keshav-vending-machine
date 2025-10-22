@@ -62,7 +62,11 @@ TIME_ZONE = 'Indian/Mauritius'
 USE_I18N = True
 USE_TZ = True
 
+# ========== STATIC FILES CONFIGURATION ==========
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # ← ADDED THIS LINE
+]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'

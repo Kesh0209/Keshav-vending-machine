@@ -40,7 +40,7 @@ body {
 </style>
 </head>
 <body>
-<img src="/static/images/vending_machineV2.jpg" alt="Vending Machine" class="vending-img" id="vendingImg">
+<img src="{% static 'images/products/vending_machineV2.jpg' %}" alt="Vending Machine" class="vending-img" id="vendingImg">
 <div class="loading-text" id="loadingText">✨ Loading products...</div>
 
 <script>
@@ -57,6 +57,7 @@ vending.addEventListener("click", () => {
 </script>
 </body>
 </html>
+
 
 
 
