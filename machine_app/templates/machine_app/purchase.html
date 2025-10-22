@@ -1,0 +1,320 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>💰 Insert Money - Smart Vending Machine</title>
+<style>
+/* Your existing CSS remains exactly the same */
+body {
+    background: radial-gradient(circle at center, #0b0c10, #1f2833);
+    color: #c5c6c7;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+    overflow-x: hidden;
+}
+h1 {
+    color: #66fcf1;
+    text-shadow: 0 0 15px #45a29e;
+    animation: glow 2s infinite alternate;
+}
+@keyframes glow {
+    from { text-shadow: 0 0 10px #66fcf1; }
+    to { text-shadow: 0 0 25px #45a29e, 0 0 35px #45a29e; }
+}
+.cart-summary {
+    background: rgba(31, 40, 51, 0.9);
+    border: 2px solid #66fcf1;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #45a29e;
+    width: 80%;
+    margin: 0 auto 30px auto;
+    padding: 20px;
+    transform: scale(0.98);
+    transition: all 0.3s ease;
+}
+.cart-summary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px #66fcf1;
+}
+.cart-summary table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #c5c6c7;
+}
+.cart-summary th {
+    color: #66fcf1;
+    border-bottom: 1px solid #45a29e;
+    padding: 10px;
+}
+.cart-summary td {
+    padding: 10px;
+}
+.cart-summary tr:hover td {
+    background: rgba(102, 252, 241, 0.05);
+}
+.coin {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 25px auto;
+    background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+    box-shadow: inset 0 0 10px #fff8b0, 0 0 20px #ffd700, 0 0 40px #b8860b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.2em;
+    color: #fff;
+    text-shadow: 1px 1px 4px #b8860b;
+    animation: spin 2s linear infinite, pulse 3s infinite alternate;
+}
+@keyframes spin {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
+}
+@keyframes pulse {
+    from { box-shadow: 0 0 10px #ffd700; }
+    to { box-shadow: 0 0 25px #fff8b0, 0 0 45px #ffd700; }
+}
+.denomination-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 25px;
+}
+.denomination, .denomination-note {
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+.denomination {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: radial-gradient(circle at top left, #f9d71c, #b8860b);
+    box-shadow: 0 0 12px #f9d71c;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.5em;
+    text-shadow: 1px 1px 2px #333;
+}
+.denomination:hover {
+    transform: scale(1.08) rotateY(15deg);
+    box-shadow: 0 0 25px #ffd700;
+}
+.denomination-note {
+    width: 130px;
+    height: 70px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    box-shadow: 0 0 12px #4caf50;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-shadow: 1px 1px 3px #1b5e20;
+}
+.denomination-note:hover {
+    transform: scale(1.08) rotateY(10deg);
+    box-shadow: 0 0 25px #66fcf1;
+}
+.plus-minus {
+    display: flex;
+    gap: 5px;
+    margin-top: 6px;
+}
+.plus-minus button {
+    border: none;
+    border-radius: 5px;
+    background: #66fcf1;
+    color: #0b0c10;
+    font-weight: bold;
+    font-size: 0.9em;
+    padding: 3px 7px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.plus-minus button:hover {
+    background: #45a29e;
+    color: white;
+}
+.plus-minus span {
+    width: 20px;
+    display: inline-block;
+}
+.total-display {
+    font-size: 1.4em;
+    color: #66fcf1;
+    margin: 15px 0;
+    text-shadow: 0 0 10px #45a29e;
+}
+button#confirm {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #66fcf1, #45a29e);
+    color: #0b0c10;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    box-shadow: 0 0 15px #45a29e;
+    transition: all 0.3s ease;
+}
+button#confirm:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px #66fcf1;
+}
+</style>
+</head>
+
+<body>
+
+<h1>💰 Insert Money</h1>
+
+<div class="cart-summary">
+    <h3>Your Selected Items</h3>
+    <table>
+        <tr><th>Item</th><th>Qty</th><th>Price (Rs)</th><th>Total (Rs)</th></tr>
+        {% for item in cart %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.qty }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.total_price }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="3"><strong>Total</strong></td>
+            <td><strong>Rs {{ total_cost }}</strong></td>
+        </tr>
+    </table>
+</div>
+
+<div class="money-section">
+    <div class="coin">₿</div>
+
+    {% if insufficient %}
+        <p style="color: #ff5555; font-weight:bold;">{{ insufficient }}</p>
+    {% endif %}
+
+    <form method="post" id="moneyForm" action="{% url 'purchase' %}">
+        {% csrf_token %}
+        
+        <!-- REMOVED: cart_data hidden field - now using session -->
+        
+        <div class="denomination-container">
+            {% for denom in denominations %}
+            <div class="{% if denom > 20 %}denomination-note{% else %}denomination{% endif %}" data-value="{{ denom }}">
+                {{ denom }}
+                <div class="plus-minus">
+                    <button type="button" class="minus">-</button>
+                    <span class="count">0</span>
+                    <button type="button" class="plus">+</button>
+                </div>
+            </div>
+            <input type="hidden" name="insert_{{ denom }}" id="input_{{ denom }}" value="0">
+            {% endfor %}
+        </div>
+
+        <div class="total-display">
+            Total Inserted: Rs <span id="totalInserted">0</span>
+        </div>
+
+        <button type="submit" id="confirm" name="process_payment">Confirm Purchase</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const totalDisplay = document.getElementById('totalInserted');
+
+    function updateTotal() {
+        let total = 0;
+        document.querySelectorAll('.count').forEach(span => {
+            const parent = span.closest('.denomination, .denomination-note');
+            const value = parseInt(parent.dataset.value);
+            const count = parseInt(span.textContent || 0);
+            total += value * count;
+            const hidden = document.getElementById(`input_${value}`);
+            if (hidden) hidden.value = count;
+        });
+        totalDisplay.textContent = total;
+        console.log('Updated total inserted:', total);
+    }
+
+    document.querySelectorAll('.denomination, .denomination-note').forEach(elem => {
+        elem.querySelector('.plus').addEventListener('click', () => {
+            const span = elem.querySelector('.count');
+            span.textContent = parseInt(span.textContent || 0) + 1;
+            updateTotal();
+        });
+        elem.querySelector('.minus').addEventListener('click', () => {
+            const span = elem.querySelector('.count');
+            let val = parseInt(span.textContent || 0);
+            if (val > 0) span.textContent = val - 1;
+            updateTotal();
+        });
+    });
+
+    // Validate form before submission
+    document.getElementById('moneyForm').addEventListener('submit', function(e) {
+        updateTotal();
+        
+        const totalInserted = parseInt(totalDisplay.textContent) || 0;
+        console.log('Form submission - Total inserted:', totalInserted);
+
+        if (totalInserted === 0) {
+            e.preventDefault();
+            alert('Please insert some money before confirming purchase!');
+            return false;
+        }
+        
+        return true;
+    });
+
+    updateTotal();
+});
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

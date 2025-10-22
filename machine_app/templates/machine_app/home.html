@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polytechnic Ebene Vending Machine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top left, #4f46e5, #111827);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    h1 {
+      font-size: 2.5em;
+      text-align: center;
+      margin-bottom: 40px;
+      text-shadow: 0 0 15px rgba(255,255,255,0.3);
+    }
+    .buttons {
+      display: flex;
+      gap: 30px;
+    }
+    button {
+      padding: 18px 30px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.2em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      color: white;
+    }
+    #studentBtn {
+      background: linear-gradient(135deg, #06b6d4, #2563eb);
+      box-shadow: 0 0 25px rgba(37,99,235,0.5);
+    }
+    #adminBtn {
+      background: linear-gradient(135deg, #9333ea, #c026d3);
+      box-shadow: 0 0 25px rgba(147,51,234,0.5);
+    }
+    button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 35px rgba(255,255,255,0.6);
+    }
+    #nameForm {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin-top: 20px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    input {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: none;
+      width: 250px;
+      text-align: center;
+      font-size: 1em;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+<body>
+  <h1>🎓 Polytechnic Ebene Smart Vending Machine</h1>
+
+  <div class="buttons">
+    <button id="studentBtn">👨‍🎓 Student</button>
+    <button id="adminBtn">🔐 Admin</button>
+  </div>
+
+  <!-- FIXED: Changed action from {% url 'vending' %} to {% url 'enter_name' %} -->
+  <form id="nameForm" method="POST" action="{% url 'enter_name' %}">
+    {% csrf_token %}
+    <input type="text" name="student_name" placeholder="Enter your name" required>
+    <button type="submit" id="startBtn">🚀 Continue</button>
+  </form>
+
+  <script>
+    document.getElementById("studentBtn").addEventListener("click", () => {
+      document.querySelector(".buttons").style.display = "none";
+      document.getElementById("nameForm").style.display = "flex";
+    });
+
+    document.getElementById("adminBtn").addEventListener("click", () => {
+      window.location.href = "/admin/";
+    });
+  </script>
+</body>
+</html>

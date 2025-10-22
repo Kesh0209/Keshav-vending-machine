@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Polytechnic Ebene Vending Machine</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(circle at center, #0b0c10, #1f2833);
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            color: #66fcf1;
+            text-shadow: 0 0 20px #45a29e;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 15px #45a29e; }
+            to { text-shadow: 0 0 30px #66fcf1; }
+        }
+
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 40px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #45a29e, #66fcf1);
+            color: #0b0c10;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px #66fcf1;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            background: linear-gradient(45deg, #66fcf1, #45a29e);
+            box-shadow: 0 0 30px #66fcf1;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 15px;
+            color: #c5c6c7;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Polytechnic Ebene Vending Machine</h1>
+    <form method="POST" style="text-align:center;">
+        {% csrf_token %}
+        <div class="buttons">
+            <button type="submit" name="role" value="student">👨‍🎓 Student</button>
+            <button type="submit" name="role" value="admin">🔐 Admin</button>
+        </div>
+    </form>
+    <footer>Powered by Keshava Sukhai</footer>
+</body>
+</html>
+
+

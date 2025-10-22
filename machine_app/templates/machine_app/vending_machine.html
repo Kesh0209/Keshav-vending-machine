@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Vending Machine</title>
+<style>
+body {
+    margin: 0;
+    background: radial-gradient(circle at center, #0b0c10, #1f2833);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+}
+.vending-img {
+    width: 500px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px #66fcf1;
+    cursor: pointer;
+    transition: transform 1s ease, opacity 1s ease;
+}
+.vending-img.zoomed {
+    transform: scale(2);
+    opacity: 0;
+}
+.loading-text {
+    position: absolute;
+    top: 80%;
+    color: #c5c6c7;
+    font-size: 1.2em;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+.loading-text.show {
+    opacity: 1;
+}
+</style>
+</head>
+<body>
+<img src="{{ MEDIA_URL }}vending_machineV2.jpg" alt="Vending Machine" class="vending-img" id="vendingImg">
+<div class="loading-text" id="loadingText">✨ Loading products...</div>
+
+<script>
+const vending = document.getElementById("vendingImg");
+const loadingText = document.getElementById("loadingText");
+
+vending.addEventListener("click", () => {
+    vending.classList.add("zoomed");
+    loadingText.classList.add("show");
+    setTimeout(() => {
+        window.location.href = "{% url 'products' %}";
+    }, 1600);
+});
+</script>
+</body>
+</html>
+
+
+
+

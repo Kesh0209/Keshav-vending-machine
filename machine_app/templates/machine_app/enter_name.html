@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Enter Your Name</title>
+    <style>
+        body {
+            height: 100vh;
+            background: radial-gradient(circle at center, #1f2833, #0b0c10);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        h2 {
+            color: #66fcf1;
+            text-shadow: 0 0 15px #45a29e;
+        }
+
+        input {
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: none;
+            width: 250px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        button {
+            background: linear-gradient(45deg, #45a29e, #66fcf1);
+            color: #0b0c10;
+            border: none;
+            padding: 10px 30px;
+            margin-top: 20px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px #66fcf1;
+        }
+    </style>
+</head>
+<body>
+    <h2>👋 Welcome! Please enter your name</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="student_name" placeholder="Your Name..." required>
+        <br>
+        <button type="submit">🚀 Continue</button>
+    </form>
+</body>
+</html>

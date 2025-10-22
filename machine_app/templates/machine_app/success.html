@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Transaction Successful - Smart Vending Machine</title>
+<style>
+body {
+    background: radial-gradient(circle at center, #0b0c10, #1f2833);
+    color: #c5c6c7;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    padding: 20px;
+}
+
+h1 {
+    color: #66fcf1;
+    margin-bottom: 10px;
+    font-size: 2em;
+}
+
+.receipt {
+    background: #1f2833;
+    border-radius: 15px;
+    width: 85%;
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    box-shadow: 0 0 20px #45a29e;
+    text-align: left;
+}
+
+.receipt h2 {
+    text-align: center;
+    color: #66fcf1;
+    margin-bottom: 15px;
+}
+
+.receipt table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #c5c6c7;
+    margin-bottom: 15px;
+}
+
+.receipt th, .receipt td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #45a29e;
+}
+
+.receipt-summary {
+    border-top: 2px dashed #45a29e;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.summary-line strong {
+    color: #66fcf1;
+}
+
+.dispense-animation {
+    perspective: 1000px;
+    margin-top: 30px;
+}
+
+.snack {
+    width: 120px;
+    height: 60px;
+    background: linear-gradient(135deg, #66fcf1, #45a29e);
+    margin: 20px auto;
+    border-radius: 10px;
+    color: #0b0c10;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: dropSnack 3s ease-in-out;
+    transform-style: preserve-3d;
+    box-shadow: 0 0 20px #66fcf1;
+}
+
+@keyframes dropSnack {
+    0% { transform: translateY(-200px) rotateX(0deg); opacity: 0; }
+    50% { transform: translateY(20px) rotateX(360deg); opacity: 1; }
+    100% { transform: translateY(0px) rotateX(720deg); }
+}
+
+button {
+    background: #66fcf1;
+    color: #0b0c10;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 25px;
+    margin-top: 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+</style>
+</head>
+<body>
+
+<h1>🎉 Transaction Successful!</h1>
+<p>Thank you, <strong>{{ student_name }}</strong>! Your snacks are being dispensed 🍫</p>
+
+<div class="receipt">
+    <h2>🧾 Transaction Receipt</h2>
+
+    <table>
+        <tr><th>Item</th><th>Qty</th><th>Price (Rs)</th><th>Total (Rs)</th></tr>
+        {% for item in cart %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.qty }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.total_price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div class="receipt-summary">
+        <div class="summary-line"><span>Total Cost:</span> <strong>Rs {{ total_cost|floatformat:2 }}</strong></div>
+        <div class="summary-line"><span>Money Inserted:</span> <strong>Rs {{ money_inserted|floatformat:2 }}</strong></div>
+        <div class="summary-line"><span>Change Returned:</span> <strong>Rs {{ change|floatformat:2 }}</strong></div>
+    </div>
+
+    {% if change_details %}
+    <div style="margin-top: 15px;">
+        <h4 style="color:#66fcf1;">💵 Change Breakdown:</h4>
+        <ul>
+            {% for denom, count in change_details.items %}
+            <li>Rs {{ denom }} × {{ count }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<div class="dispense-animation">
+    <div class="snack">🍪</div>
+    <div class="snack" style="animation-delay: 0.5s;">🥤</div>
+    <div class="snack" style="animation-delay: 1s;">🍫</div>
+</div>
+
+<form action="{% url 'index' %}">
+    <button type="submit">🏠 Back to Home</button>
+</form>
+
+</body>
+</html>
+
