@@ -8,7 +8,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from .models import VendingProduct, PurchaseRecord, CustomerSession, MoneyTransaction
 
-# Available currency denominations
+
 VALID_DENOMINATIONS = [5, 10, 20, 25, 50, 100, 200]
 
 def index(request):
@@ -55,7 +55,7 @@ def products(request):
     if role != 'student' or not student_name:
         return redirect('index')
 
-    # Filter products by category
+    
     snacks = VendingProduct.objects.filter(category='snacks', is_available=True)
     drinks = VendingProduct.objects.filter(category='drinks', is_available=True)
     
@@ -75,7 +75,7 @@ def purchase(request):
         print("=== PURCHASE POST REQUEST ===")
         print("POST keys:", list(request.POST.keys()))
         
-        # Step 1: Cart submitted from products page
+        
         if 'cart_submitted' in request.POST:
             print("=== CART SUBMISSION DETECTED ===")
             cart = []
@@ -103,7 +103,7 @@ def purchase(request):
                 messages.error(request, "Your cart is empty!")
                 return redirect('products')
 
-            # Store cart in session
+            
             request.session['cart'] = cart
             request.session['total_cost'] = total_cost
             print(f"Cart saved to session: {cart}")
@@ -115,11 +115,11 @@ def purchase(request):
                 'denominations': VALID_DENOMINATIONS
             })
 
-        # Step 2: Money inserted from purchase page
+        
         elif 'process_payment' in request.POST:
             print("=== PAYMENT PROCESSING DETECTED ===")
             
-            # Get cart from session instead of form data
+            
             cart = request.session.get('cart', [])
             total_cost = request.session.get('total_cost', 0)
             
@@ -130,7 +130,7 @@ def purchase(request):
                 messages.error(request, "❌ Cart is empty. Please select items first.")
                 return redirect('products')
 
-            # Process inserted money
+            
             inserted = {}
             money_inserted = 0
             for denom in VALID_DENOMINATIONS:
@@ -143,7 +143,7 @@ def purchase(request):
 
             print(f"Money inserted: {money_inserted}")
 
-            # Check if enough money was inserted
+            
             if money_inserted < total_cost:
                 deficit = total_cost - money_inserted
                 print(f"Insufficient funds: {deficit} deficit")
@@ -156,11 +156,11 @@ def purchase(request):
                     'insufficient': f"❌ Not enough money! Please insert at least Rs {deficit:.2f} more."
                 })
 
-            # Enough money → process transaction
+            
             change = round(money_inserted - total_cost, 2)
             print(f"Transaction successful. Change: {change}")
 
-            # Create customer session
+            
             session = CustomerSession.objects.create(
                 customer_id=student_name,
                 deposited_amount=money_inserted,
@@ -169,7 +169,7 @@ def purchase(request):
                 is_completed=True
             )
 
-            # Record inserted money
+            
             for denom, count in inserted.items():
                 if count > 0:
                     MoneyTransaction.objects.create(
@@ -179,7 +179,7 @@ def purchase(request):
                         type='inserted'
                     )
 
-            # Calculate change breakdown
+            
             change_details = {}
             if change > 0:
                 remaining = change
@@ -190,7 +190,7 @@ def purchase(request):
                         remaining -= denom * num
                         remaining = round(remaining, 2)
 
-                # Record change given
+                
                 for denom, count in change_details.items():
                     MoneyTransaction.objects.create(
                         session=session,
@@ -199,12 +199,12 @@ def purchase(request):
                         type='change'
                     )
 
-            # Process each cart item and update stock
+            
             for item in cart:
                 product = VendingProduct.objects.get(id=item['id'])
                 qty = item['qty']
 
-                # Handle low stock by auto-restocking
+                
                 if product.available_quantity < qty:
                     refill_qty = 30 - product.available_quantity
                     if refill_qty > 0:
@@ -218,7 +218,7 @@ def purchase(request):
                         product.available_quantity = 30
                         product.save()
 
-                # Process the actual purchase
+                
                 if product.available_quantity >= qty:
                     product.available_quantity -= qty
                     product.save()
@@ -250,7 +250,7 @@ def purchase(request):
                 'session': session,
             })
 
-    # If GET request or no valid POST data, redirect to products
+    
     print("No valid POST data detected, redirecting to products")
     return redirect('products')
 
@@ -258,3 +258,17 @@ def logout_view(request):
     request.session.flush()
     messages.success(request, "You have been logged out successfully.")
     return redirect('index')
+
+from django.http import JsonResponse
+from .models import VendingProduct
+
+def products_api(request):
+    product_list = list(VendingProduct.objects.values('id', 'product_name', 'cost', 'available_quantity'))
+    
+    for p in product_list:
+        p['name'] = p.pop('product_name')
+        p['price'] = float(p.pop('cost'))
+        p['quantity'] = p.pop('available_quantity')
+        if p.get('image'):
+            p['image'] = request.build_absolute_uri(settings.MEDIA_URL + str(p['image']))
+    return JsonResponse(product_list, safe=False)

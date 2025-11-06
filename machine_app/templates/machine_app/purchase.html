@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <title>💰 Insert Money - Smart Vending Machine</title>
 <style>
-/* Your existing CSS remains exactly the same */
+
 body {
     background: radial-gradient(circle at center, #0b0c10, #1f2833);
     color: #c5c6c7;
@@ -210,7 +210,7 @@ button#confirm:hover {
     <form method="post" id="moneyForm" action="{% url 'purchase' %}">
         {% csrf_token %}
         
-        <!-- REMOVED: cart_data hidden field - now using session -->
+        
         
         <div class="denomination-container">
             {% for denom in denominations %}
@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Validate form before submission
+    
     document.getElementById('moneyForm').addEventListener('submit', function(e) {
         updateTotal();
         

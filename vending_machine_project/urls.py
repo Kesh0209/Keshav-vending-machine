@@ -3,8 +3,9 @@ from django.urls import path, include
 from django.conf import settings
 from django.views.static import serve
 from django.urls import re_path
+from machine_app import api
 
-# Auto-create superuser if it doesn't exist
+
 from django.contrib.auth.models import User
 import os
 
@@ -14,9 +15,10 @@ if not User.objects.filter(username='keshav').exists() and os.environ.get('RENDE
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('machine_app.urls')),
+    path('api/purchase/', api.purchase_api, name='purchase_api'),
 ]
 
-# Serve media files - SIMPLE VERSION THAT WORKS
+
 urlpatterns += [
     re_path(r'^media/(?P<path>.*)$', serve, {
         'document_root': settings.MEDIA_ROOT,

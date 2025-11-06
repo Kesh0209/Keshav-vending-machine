@@ -1,12 +1,26 @@
 from pathlib import Path
 import os
+import dj_database_url
 
+# ------------------------------
+# Base directory setup
+# ------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ------------------------------
+# Security & Debug
+# ------------------------------
 SECRET_KEY = 'django-insecure-testkey123'
-DEBUG = True
-ALLOWED_HOSTS = []
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
+ALLOWED_HOSTS = []
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# ------------------------------
+# Installed Apps
+# ------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -17,9 +31,12 @@ INSTALLED_APPS = [
     'machine_app',
 ]
 
+# ------------------------------
+# Middleware
+# ------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # for static files on Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -28,8 +45,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# ------------------------------
+# URLs and WSGI
+# ------------------------------
 ROOT_URLCONF = 'vending_machine_project.urls'
+WSGI_APPLICATION = 'vending_machine_project.wsgi.application'
 
+# ------------------------------
+# Templates
+# ------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -46,8 +70,10 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'vending_machine_project.wsgi.application'
-
+# ------------------------------
+# Databases
+# ------------------------------
+# Default: SQLite for local development
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -55,69 +81,54 @@ DATABASES = {
     }
 }
 
+# If DATABASE_URL is set (Render), switch to PostgreSQL
+if os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(
+        default='postgres://user:password@host:port/database_name',
+        conn_max_age=600
+    )
+
+# ------------------------------
+# Passwords & Auth
+# ------------------------------
 AUTH_PASSWORD_VALIDATORS = []
 
+# ------------------------------
+# Localization
+# ------------------------------
 LANGUAGE_CODE = 'en-uk'
 TIME_ZONE = 'Indian/Mauritius'
 USE_I18N = True
 USE_TZ = True
 
-# ========== STATIC FILES CONFIGURATION ==========
+# ------------------------------
+# Static & Media Files
+# ------------------------------
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # ← ADDED THIS LINE
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+if not os.path.exists(MEDIA_ROOT):
+    os.makedirs(MEDIA_ROOT)
 
-# Deployment settings
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-
-ALLOWED_HOSTS = []
-
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-# Only use production settings on Render when DATABASE_URL is available
-if not DEBUG and os.environ.get('DATABASE_URL'):
-    # Import here to avoid local issues
-    import dj_database_url
-    
-    # Database
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600
-        )
-    }
-    
-    # Whitenoise for static files
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    
-    # Security settings
+# ------------------------------
+# Security (for Render)
+# ------------------------------
+if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
 
-# Media files configuration - FIXED VERSION
-# Make sure media directory exists
-if not os.path.exists(MEDIA_ROOT):
-    os.makedirs(MEDIA_ROOT)
-
-# Serve media files in production using Whitenoise
-if not DEBUG:
-    # Enable Whitenoise for media files
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_MANIFEST_STRICT = False
     WHITENOISE_ALLOW_ALL_ORIGINS = True
 
-# Force media file serving
-import os
-if not os.path.exists(MEDIA_ROOT):
-    os.makedirs(MEDIA_ROOT)
+# ------------------------------
+# Default field type
+# ------------------------------
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 
-# Mauritius timezone constant
+# Mauritius time
 MAURITIUS_OFFSET = timedelta(hours=4)
 
 class VendingProduct(models.Model):
@@ -48,7 +48,7 @@ class CustomerSession(models.Model):
     session_start = models.DateTimeField(default=timezone.now)
     is_completed = models.BooleanField(default=False)
 
-    # Add this property for the admin
+    
     @property
     def timestamp(self):
         return self.session_start
@@ -86,11 +86,11 @@ class PurchaseRecord(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
-        # Auto-calculate total_price if not set
+        
         if not self.total_price and self.transaction_type == 'purchase':
             self.total_price = self.product.cost * self.quantity
         
-        # Use Mauritius time
+        
         mauritius_time = timezone.now() + MAURITIUS_OFFSET
         self.timestamp = mauritius_time
         super().save(*args, **kwargs)
@@ -112,7 +112,7 @@ class MoneyTransaction(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
-        # Use Mauritius time
+        
         mauritius_time = timezone.now() + MAURITIUS_OFFSET
         self.timestamp = mauritius_time
         super().save(*args, **kwargs)

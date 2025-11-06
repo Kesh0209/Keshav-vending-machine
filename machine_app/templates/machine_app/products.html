@@ -94,7 +94,7 @@ input.qty {
     {% csrf_token %}
     <input type="hidden" name="cart_submitted" value="1">
 
-    <!-- Snacks -->
+    
     <div class="category-title">🍰 Cakes & Snacks</div>
     <div class="products-container">
         {% for product in snacks %}
@@ -119,7 +119,7 @@ input.qty {
         {% endfor %}
     </div>
 
-    <!-- Drinks -->
+    
     <div class="category-title">🥤 Soft Drinks</div>
     <div class="products-container">
         {% for product in drinks %}
@@ -149,7 +149,7 @@ input.qty {
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Increase qty with plus button
+    
     document.querySelectorAll(".plus").forEach(function(btn) {
         btn.addEventListener("click", function(e) {
             e.stopPropagation();
@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // Decrease qty with minus button
+    
     document.querySelectorAll(".minus").forEach(function(btn) {
         btn.addEventListener("click", function(e) {
             e.stopPropagation();
@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // Clicking anywhere on product increments qty
+    
     document.querySelectorAll(".product").forEach(function(prod) {
         prod.addEventListener("click", function(e) {
             if(e.target.tagName !== "BUTTON" && e.target.tagName !== "INPUT") {

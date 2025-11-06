@@ -81,7 +81,7 @@
     <button id="adminBtn">🔐 Admin</button>
   </div>
 
-  <!-- FIXED: Changed action from {% url 'vending' %} to {% url 'enter_name' %} -->
+  
   <form id="nameForm" method="POST" action="{% url 'enter_name' %}">
     {% csrf_token %}
     <input type="text" name="student_name" placeholder="Enter your name" required>

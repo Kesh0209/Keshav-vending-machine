@@ -7,9 +7,9 @@ from .models import (
     MoneyTransaction
 )
 
-# -----------------------------
-# Timezone for Mauritius (UTC+4)
-# -----------------------------
+
+# Time for Mauritius (+4)
+
 from datetime import timedelta
 MAURITIUS_OFFSET = timedelta(hours=4)
 
@@ -18,9 +18,9 @@ def mauritius_time(obj):
     return (obj.timestamp + MAURITIUS_OFFSET).strftime('%d/%m/%Y %H:%M:%S')
 mauritius_time.short_description = 'Mauritius Time'
 
-# -----------------------------
-# Admin configuration for VendingProduct
-# -----------------------------
+
+# Admin config
+
 @admin.register(VendingProduct)
 class VendingProductAdmin(admin.ModelAdmin):
     list_display = ['product_name', 'category', 'cost', 'available_quantity', 'is_available']
@@ -39,9 +39,9 @@ class VendingProductAdmin(admin.ModelAdmin):
     )
 
 
-# -----------------------------
-# Inline for PurchaseRecord
-# -----------------------------
+
+
+
 class PurchaseRecordInline(admin.TabularInline):
     model = PurchaseRecord
     extra = 0
@@ -57,9 +57,9 @@ class PurchaseRecordInline(admin.TabularInline):
         return False
 
 
-# -----------------------------
-# Inline for MoneyTransaction
-# -----------------------------
+
+
+
 class MoneyTransactionInline(admin.TabularInline):
     model = MoneyTransaction
     extra = 0
@@ -75,9 +75,9 @@ class MoneyTransactionInline(admin.TabularInline):
         return False
 
 
-# -----------------------------
-# Admin configuration for CustomerSession
-# -----------------------------
+
+
+
 @admin.register(CustomerSession)
 class CustomerSessionAdmin(admin.ModelAdmin):
     list_display = [
@@ -118,9 +118,9 @@ class CustomerSessionAdmin(admin.ModelAdmin):
     get_session_total.short_description = 'Session Total'
 
 
-# -----------------------------
-# Admin configuration for PurchaseRecord
-# -----------------------------
+
+
+
 @admin.register(PurchaseRecord)
 class PurchaseRecordAdmin(admin.ModelAdmin):
     list_display = [
@@ -153,9 +153,9 @@ class PurchaseRecordAdmin(admin.ModelAdmin):
         return False
 
 
-# -----------------------------
-# Admin configuration for MoneyTransaction
-# -----------------------------
+
+
+
 @admin.register(MoneyTransaction)
 class MoneyTransactionAdmin(admin.ModelAdmin):
     list_display = [
@@ -190,9 +190,9 @@ class MoneyTransactionAdmin(admin.ModelAdmin):
         return False
 
 
-# -----------------------------
-# Admin site customization
-# -----------------------------
+
+
+# Admin
 admin.site.site_header = "Polytechnic Ebene Vending Machine Administration"
 admin.site.site_title = "Vending Machine Admin"
 admin.site.index_title = "Welcome to Vending Machine Management"
