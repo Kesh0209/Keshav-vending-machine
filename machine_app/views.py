@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponse
 from .models import VendingProduct, PurchaseRecord, CustomerSession, MoneyTransaction
-
+from datetime import datetime, timedelta
 
 VALID_DENOMINATIONS = [5, 10, 20, 25, 50, 100, 200]
 
@@ -160,12 +160,16 @@ def purchase(request):
             change = round(money_inserted - total_cost, 2)
             print(f"Transaction successful. Change: {change}")
 
+            # Get current Mauritius time (UTC+4)
+            # Since Render server is in UTC, we need to add 4 hours for Mauritius time
+            mauritius_time = timezone.now() + timedelta(hours=4)
             
             session = CustomerSession.objects.create(
                 customer_id=student_name,
                 deposited_amount=money_inserted,
                 final_total=total_cost,
                 returned_change=change,
+                session_start=mauritius_time,  # Use Mauritius time
                 is_completed=True
             )
 
@@ -272,3 +276,148 @@ def products_api(request):
         if p.get('image'):
             p['image'] = request.build_absolute_uri(settings.MEDIA_URL + str(p['image']))
     return JsonResponse(product_list, safe=False)
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.db import transaction
+import json
+
+# ADD THESE API ENDPOINTS FOR TKINTER
+@api_view(['GET'])
+def api_products(request):
+    """API for Tkinter to get products"""
+    products = VendingProduct.objects.filter(is_available=True)
+    product_list = []
+    for product in products:
+        product_list.append({
+            'id': product.id,
+            'product_name': product.product_name,
+            'name': product.product_name,
+            'cost': float(product.cost),
+            'price': float(product.cost),
+            'available_quantity': product.available_quantity,
+            'quantity': product.available_quantity,
+            'category': product.category,
+            'is_available': product.is_available,
+            'image': request.build_absolute_uri(product.product_image.url) if product.product_image else None
+        })
+    return Response(product_list)
+
+@api_view(['POST'])
+@transaction.atomic
+def api_purchase(request):
+    """API for Tkinter to process purchases"""
+    try:
+        data = request.data
+        customer_name = data.get('customer', '').strip()
+        items = data.get('items', [])
+        deposited_amount = float(data.get('deposited_amount', 0))
+        
+        if not customer_name:
+            return Response({'error': 'Customer name is required'}, status=400)
+        
+        if not items:
+            return Response({'error': 'No items selected'}, status=400)
+        
+        # Calculate total and process purchase
+        total_cost = 0
+        purchased_items = []
+        
+        for item in items:
+            product_id = item.get('product')
+            quantity = int(item.get('quantity', 0))
+            
+            if quantity <= 0:
+                continue
+                
+            product = VendingProduct.objects.get(id=product_id)
+            
+            if product.available_quantity < quantity:
+                return Response({'error': f'Not enough stock for {product.product_name}'}, status=400)
+            
+            item_total = float(product.cost) * quantity
+            total_cost += item_total
+            
+            # Reduce stock
+            product.available_quantity -= quantity
+            product.save()
+            
+            purchased_items.append({
+                'product_name': product.product_name,
+                'quantity': quantity,
+                'total': item_total
+            })
+        
+        # Check if enough money was deposited
+        if deposited_amount < total_cost:
+            return Response({'error': f'Insufficient funds. Need Rs {total_cost - deposited_amount:.2f} more'}, status=400)
+        
+        change = deposited_amount - total_cost
+        
+        # Create customer session with Mauritius time (UTC+4)
+        mauritius_time = timezone.now() + timedelta(hours=4)
+        session = CustomerSession.objects.create(
+            customer_id=customer_name,
+            deposited_amount=deposited_amount,
+            final_total=total_cost,
+            returned_change=change,
+            session_start=mauritius_time,  # Use Mauritius time
+            is_completed=True
+        )
+        
+        # Create purchase records
+        for item in purchased_items:
+            product = VendingProduct.objects.get(product_name=item['product_name'])
+            PurchaseRecord.objects.create(
+                customer_session=session,
+                product=product,
+                quantity=item['quantity'],
+                total_price=item['total'],
+                transaction_type='purchase'
+            )
+        
+        # Return success response
+        return Response({
+            'success': True,
+            'message': 'Purchase successful',
+            'total_amount': total_cost,
+            'change_returned': change,
+            'items': purchased_items
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+def api_purchases(request):
+    """API for Tkinter to get transaction history"""
+    sessions = CustomerSession.objects.filter(is_completed=True).order_by('-session_start')
+    transactions = []
+    
+    for session in sessions:
+        purchase_items = PurchaseRecord.objects.filter(
+            customer_session=session, 
+            transaction_type='purchase'
+        )
+        
+        items_list = []
+        for item in purchase_items:
+            items_list.append({
+                'product_name': item.product.product_name,
+                'quantity': item.quantity
+            })
+        
+        # Convert to Mauritius time for display
+        mauritius_time = session.session_start + timedelta(hours=4)
+        
+        transactions.append({
+            'id': session.id,
+            'customer': session.customer_id,
+            'total_amount': float(session.final_total),
+            'deposited_amount': float(session.deposited_amount),
+            'change_returned': float(session.returned_change),
+            'timestamp': mauritius_time,  # Use Mauritius time
+            'items': items_list
+        })
+    
+    return Response(transactions)

@@ -23,3 +23,25 @@ urlpatterns = [
     path('api/purchase/', api.purchase_api, name='purchase_api'),
     path('api/purchases/', api.purchases_api, name='purchases_api'),
 ]
+
+
+
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # YOUR EXISTING URL PATTERNS (KEEP THESE)
+    path('', views.index, name='index'),
+    path('enter_name/', views.enter_name, name='enter_name'),
+    path('vending/', views.vending_machine, name='vending'),
+    path('products/', views.products, name='products'),
+    path('purchase/', views.purchase, name='purchase'),
+    path('logout/', views.logout_view, name='logout'),
+    path('api/products/', views.products_api, name='products_api'),
+    
+    # ADD THESE NEW API ENDPOINTS FOR TKINTER
+    path('api/products/', views.api_products, name='api_products'),
+    path('api/purchase/', views.api_purchase, name='api_purchase'), 
+    path('api/purchases/', views.api_purchases, name='api_purchases'),
+]
