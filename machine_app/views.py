@@ -8,8 +8,18 @@ from django.db import transaction
 from django.http import HttpResponse
 from .models import VendingProduct, PurchaseRecord, CustomerSession, MoneyTransaction
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo   # <-- ADDED
 
 VALID_DENOMINATIONS = [5, 10, 20, 25, 50, 100, 200]
+
+def get_mauritius_time():
+    """Get current Mauritius time correctly"""
+    from datetime import datetime
+    import pytz
+    
+    mauritius_tz = pytz.timezone('Indian/Mauritius')
+    mauritius_time = datetime.now(mauritius_tz)
+    return mauritius_time
 
 def index(request):
     if request.method == 'POST':
@@ -55,7 +65,6 @@ def products(request):
     if role != 'student' or not student_name:
         return redirect('index')
 
-    
     snacks = VendingProduct.objects.filter(category='snacks', is_available=True)
     drinks = VendingProduct.objects.filter(category='drinks', is_available=True)
     
@@ -74,7 +83,6 @@ def purchase(request):
     if request.method == 'POST':
         print("=== PURCHASE POST REQUEST ===")
         print("POST keys:", list(request.POST.keys()))
-        
         
         if 'cart_submitted' in request.POST:
             print("=== CART SUBMISSION DETECTED ===")
@@ -103,7 +111,6 @@ def purchase(request):
                 messages.error(request, "Your cart is empty!")
                 return redirect('products')
 
-            
             request.session['cart'] = cart
             request.session['total_cost'] = total_cost
             print(f"Cart saved to session: {cart}")
@@ -115,10 +122,8 @@ def purchase(request):
                 'denominations': VALID_DENOMINATIONS
             })
 
-        
         elif 'process_payment' in request.POST:
             print("=== PAYMENT PROCESSING DETECTED ===")
-            
             
             cart = request.session.get('cart', [])
             total_cost = request.session.get('total_cost', 0)
@@ -130,7 +135,6 @@ def purchase(request):
                 messages.error(request, "❌ Cart is empty. Please select items first.")
                 return redirect('products')
 
-            
             inserted = {}
             money_inserted = 0
             for denom in VALID_DENOMINATIONS:
@@ -143,7 +147,6 @@ def purchase(request):
 
             print(f"Money inserted: {money_inserted}")
 
-            
             if money_inserted < total_cost:
                 deficit = total_cost - money_inserted
                 print(f"Insufficient funds: {deficit} deficit")
@@ -156,24 +159,21 @@ def purchase(request):
                     'insufficient': f"❌ Not enough money! Please insert at least Rs {deficit:.2f} more."
                 })
 
-            
             change = round(money_inserted - total_cost, 2)
             print(f"Transaction successful. Change: {change}")
 
-            # Get current Mauritius time (UTC+4)
-            # Since Render server is in UTC, we need to add 4 hours for Mauritius time
-            mauritius_time = timezone.now() + timedelta(hours=4)
-            
+            # ✔ CORRECT MAURITIUS TIME
+            mauritius_time = timezone.now().astimezone(ZoneInfo("Indian/Mauritius"))
+
             session = CustomerSession.objects.create(
                 customer_id=student_name,
                 deposited_amount=money_inserted,
                 final_total=total_cost,
                 returned_change=change,
-                session_start=mauritius_time,  # Use Mauritius time
+                session_start=mauritius_time,
                 is_completed=True
             )
 
-            
             for denom, count in inserted.items():
                 if count > 0:
                     MoneyTransaction.objects.create(
@@ -183,7 +183,6 @@ def purchase(request):
                         type='inserted'
                     )
 
-            
             change_details = {}
             if change > 0:
                 remaining = change
@@ -194,7 +193,6 @@ def purchase(request):
                         remaining -= denom * num
                         remaining = round(remaining, 2)
 
-                
                 for denom, count in change_details.items():
                     MoneyTransaction.objects.create(
                         session=session,
@@ -203,12 +201,10 @@ def purchase(request):
                         type='change'
                     )
 
-            
             for item in cart:
                 product = VendingProduct.objects.get(id=item['id'])
                 qty = item['qty']
 
-                
                 if product.available_quantity < qty:
                     refill_qty = 30 - product.available_quantity
                     if refill_qty > 0:
@@ -222,7 +218,6 @@ def purchase(request):
                         product.available_quantity = 30
                         product.save()
 
-                
                 if product.available_quantity >= qty:
                     product.available_quantity -= qty
                     product.save()
@@ -237,13 +232,11 @@ def purchase(request):
                 else:
                     messages.warning(request, f"Insufficient stock for {product.product_name}")
 
-            # Clear cart from session after successful purchase
             if 'cart' in request.session:
                 del request.session['cart']
             if 'total_cost' in request.session:
                 del request.session['total_cost']
 
-            # Success page
             return render(request, 'machine_app/success.html', {
                 'cart': cart,
                 'student_name': student_name,
@@ -254,7 +247,6 @@ def purchase(request):
                 'session': session,
             })
 
-    
     print("No valid POST data detected, redirecting to products")
     return redirect('products')
 
@@ -282,10 +274,8 @@ from rest_framework.response import Response
 from django.db import transaction
 import json
 
-# ADD THESE API ENDPOINTS FOR TKINTER
 @api_view(['GET'])
 def api_products(request):
-    """API for Tkinter to get products"""
     products = VendingProduct.objects.filter(is_available=True)
     product_list = []
     for product in products:
@@ -306,7 +296,6 @@ def api_products(request):
 @api_view(['POST'])
 @transaction.atomic
 def api_purchase(request):
-    """API for Tkinter to process purchases"""
     try:
         data = request.data
         customer_name = data.get('customer', '').strip()
@@ -319,7 +308,6 @@ def api_purchase(request):
         if not items:
             return Response({'error': 'No items selected'}, status=400)
         
-        # Calculate total and process purchase
         total_cost = 0
         purchased_items = []
         
@@ -338,7 +326,6 @@ def api_purchase(request):
             item_total = float(product.cost) * quantity
             total_cost += item_total
             
-            # Reduce stock
             product.available_quantity -= quantity
             product.save()
             
@@ -348,24 +335,23 @@ def api_purchase(request):
                 'total': item_total
             })
         
-        # Check if enough money was deposited
         if deposited_amount < total_cost:
             return Response({'error': f'Insufficient funds. Need Rs {total_cost - deposited_amount:.2f} more'}, status=400)
         
         change = deposited_amount - total_cost
         
-        # Create customer session with Mauritius time (UTC+4)
-        mauritius_time = timezone.now() + timedelta(hours=4)
+        # ✔ CORRECT MAURITIUS TIME
+        mauritius_time = timezone.now().astimezone(ZoneInfo("Indian/Mauritius"))
+
         session = CustomerSession.objects.create(
             customer_id=customer_name,
             deposited_amount=deposited_amount,
             final_total=total_cost,
             returned_change=change,
-            session_start=mauritius_time,  # Use Mauritius time
+            session_start=mauritius_time,
             is_completed=True
         )
         
-        # Create purchase records
         for item in purchased_items:
             product = VendingProduct.objects.get(product_name=item['product_name'])
             PurchaseRecord.objects.create(
@@ -376,7 +362,6 @@ def api_purchase(request):
                 transaction_type='purchase'
             )
         
-        # Return success response
         return Response({
             'success': True,
             'message': 'Purchase successful',
@@ -390,7 +375,6 @@ def api_purchase(request):
 
 @api_view(['GET'])
 def api_purchases(request):
-    """API for Tkinter to get transaction history"""
     sessions = CustomerSession.objects.filter(is_completed=True).order_by('-session_start')
     transactions = []
     
@@ -407,8 +391,8 @@ def api_purchases(request):
                 'quantity': item.quantity
             })
         
-        # Convert to Mauritius time for display
-        mauritius_time = session.session_start + timedelta(hours=4)
+        # ✔ CORRECT MAURITIUS TIME WHEN DISPLAYING
+        mauritius_time = session.session_start.astimezone(ZoneInfo("Indian/Mauritius"))
         
         transactions.append({
             'id': session.id,
@@ -416,7 +400,7 @@ def api_purchases(request):
             'total_amount': float(session.final_total),
             'deposited_amount': float(session.deposited_amount),
             'change_returned': float(session.returned_change),
-            'timestamp': mauritius_time,  # Use Mauritius time
+            'timestamp': mauritius_time,
             'items': items_list
         })
     
